@@ -5,21 +5,14 @@ import logging
 from typing import Any
 
 from .device import REQ_HEADER, SwitchbotDevice, update_after_operation
+from ..const import CurtainSpeed
 
 # Curtain keys
 CURTAIN_COMMAND = "4501"
-OPEN_KEYS = [
-    f"{REQ_HEADER}{CURTAIN_COMMAND}010100",
-    f"{REQ_HEADER}{CURTAIN_COMMAND}05ff00",
-]
-CLOSE_KEYS = [
-    f"{REQ_HEADER}{CURTAIN_COMMAND}010164",
-    f"{REQ_HEADER}{CURTAIN_COMMAND}05ff64",
-]
-POSITION_KEYS = [
-    f"{REQ_HEADER}{CURTAIN_COMMAND}0101",
-    f"{REQ_HEADER}{CURTAIN_COMMAND}05ff",
-]  # +actual_position
+OPEN_POSITION = 0
+CLOSED_POSITION = 100
+POSITION_KEY_1 = f"{REQ_HEADER}{CURTAIN_COMMAND}0101"  # +position
+POSITION_KEY_2 = f"{REQ_HEADER}{CURTAIN_COMMAND}05"  # +speed +position
 STOP_KEYS = [f"{REQ_HEADER}{CURTAIN_COMMAND}0001", f"{REQ_HEADER}{CURTAIN_COMMAND}00ff"]
 
 CURTAIN_EXT_SUM_KEY = f"{REQ_HEADER}460401"
@@ -62,15 +55,26 @@ class SwitchbotCurtain(SwitchbotDevice):
             final_result |= self._check_command_result(result, 0, {1})
         return final_result
 
-    @update_after_operation
-    async def open(self) -> bool:
-        """Send open command."""
-        return await self._send_multiple_commands(OPEN_KEYS)
+    async def _set_position(self, position: int, speed: CurtainSpeed = CurtainSpeed.DEFAULT) -> bool:
+        """Send position command (0-100) to device without considering reverse speed."""
+        hex_position = "%0.2X" % position
+        hex_speed = "%0.2X" % speed.value
+        return await self._send_multiple_commands(
+            [
+                POSITION_KEY_1 + hex_position,
+                POSITION_KEY_2 + hex_speed + hex_position,
+            ]
+        )
 
     @update_after_operation
-    async def close(self) -> bool:
+    async def open(self, speed: CurtainSpeed = CurtainSpeed.DEFAULT) -> bool:
+        """Send open command."""
+        return await self._set_position(OPEN_POSITION, speed)
+
+    @update_after_operation
+    async def close(self, speed: CurtainSpeed = CurtainSpeed.DEFAULT) -> bool:
         """Send close command."""
-        return await self._send_multiple_commands(CLOSE_KEYS)
+        return await self._set_position(CLOSED_POSITION, speed)
 
     @update_after_operation
     async def stop(self) -> bool:
@@ -78,13 +82,11 @@ class SwitchbotCurtain(SwitchbotDevice):
         return await self._send_multiple_commands(STOP_KEYS)
 
     @update_after_operation
-    async def set_position(self, position: int) -> bool:
+    async def set_position(self, position: int, speed: CurtainSpeed = CurtainSpeed.DEFAULT) -> bool:
         """Send position command (0-100) to device."""
+        position = max(0, min(100, position))
         position = (100 - position) if self._reverse else position
-        hex_position = "%0.2X" % position
-        return await self._send_multiple_commands(
-            [key + hex_position for key in POSITION_KEYS]
-        )
+        return await self._set_position(position, speed)
 
     def get_position(self) -> Any:
         """Return cached position (0-100) of Curtain."""

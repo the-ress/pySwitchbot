@@ -50,3 +50,9 @@ class LockStatus(Enum):
     LOCKING_STOP = 4  # LOCKING_BLOCKED
     UNLOCKING_STOP = 5  # UNLOCKING_BLOCKED
     NOT_FULLY_LOCKED = 6  # LATCH_LOCKED - Only EU lock type
+
+
+class CurtainSpeed(Enum):
+    DEFAULT = 255
+    FAST = 0
+    SLOW = 1

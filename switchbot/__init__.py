@@ -5,6 +5,7 @@ from bleak_retry_connector import close_stale_connections, get_device
 
 from .adv_parser import SwitchbotSupportedType, parse_advertisement_data
 from .const import (
+    CurtainSpeed,
     LockStatus,
     SwitchbotAccountConnectionError,
     SwitchbotAuthenticationError,
@@ -34,6 +35,7 @@ __all__ = [
     "SwitchbotAuthenticationError",
     "ColorMode",
     "LockStatus",
+    "CurtainSpeed",
     "SwitchbotBaseLight",
     "SwitchbotBulb",
     "SwitchbotCeilingLight",
