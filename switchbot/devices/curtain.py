@@ -61,7 +61,7 @@ class SwitchbotCurtain(SwitchbotDevice):
         hex_speed = "%0.2X" % speed.value
         return await self._send_multiple_commands(
             [
-                POSITION_KEY_1 + hex_position,
+                # POSITION_KEY_1 + hex_position,
                 POSITION_KEY_2 + hex_speed + hex_position,
             ]
         )
