@@ -53,6 +53,5 @@ class LockStatus(Enum):
 
 
 class CurtainSpeed(Enum):
-    DEFAULT = 255
     FAST = 0
     SLOW = 1
